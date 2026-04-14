@@ -8,7 +8,33 @@ on:
 
 
 jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint & Auto-fix
+        run: npm run lint:fix
+
+      - name: Check Formatting
+        run: npm run format:check
+
+      - name: Run Tests
+        run: npm run test
+
   deploy:
+    needs: ci
     runs-on: ubuntu-latest
 
     env:
@@ -27,7 +53,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
 
-      - name: Temp Pull Latest Code And Build
+      - name: Pull Latest Code
         run: |
           ssh $SSH_USER@$SSH_HOST << EOF
             cd $APP_DIRECTORY
@@ -36,8 +62,8 @@ jobs:
             git checkout $BRANCH
             git pull origin $BRANCH
           EOF
-          
-      - name: Build and deploy
+
+      - name: Build and Deploy
         run: |
           ssh $SSH_USER@$SSH_HOST << EOF
             cd $APP_DIRECTORY
