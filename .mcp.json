@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "tailwindcss-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "tailwindcss-mcp-server"
+      ]
+    },
+    "antd": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@ant-design/cli@latest",
+        "mcp"
+      ]
+    }
+  }
+}
