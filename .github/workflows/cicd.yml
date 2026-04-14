@@ -1,0 +1,55 @@
+name: DEV APP Deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [none]
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      APP_DIRECTORY: ${{ vars.APP_DIRECTORY }}
+      BRANCH: 'main'
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+
+      - name: Temp Pull Latest Code And Build
+        run: |
+          ssh $SSH_USER@$SSH_HOST << EOF
+            cd $APP_DIRECTORY
+            git reset --hard
+            git fetch
+            git checkout $BRANCH
+            git pull origin $BRANCH
+          EOF
+          
+      - name: Build and deploy
+        run: |
+          ssh $SSH_USER@$SSH_HOST << EOF
+            cd $APP_DIRECTORY
+            npm install
+            npm run build
+            pm2 restart all
+          EOF
+          
+  
+
+
+
+
+
+      
